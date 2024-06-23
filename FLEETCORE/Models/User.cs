@@ -1,4 +1,8 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.Net.Mail;
+using FLEETCORE.Models.Body;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FLEETCORE.Models
 {
@@ -7,62 +11,48 @@ namespace FLEETCORE.Models
         public int Id { get; set; }
         public string FirstName { get; private set; }
         public string LastName { get; private set; }
-        public string Username { get; private set; }
         public string Password { get; private set; }
-        public string PhoneNumber { get; private set; }
         public string EmailAddress { get; private set; }
-        public string Role { get; private set; }
-        public List<Refueling> Refuelings { get; set; }
+        public int Role { get; private set; }
 
-        public List<TimeSheet> TimeSheets { get; set; }
-
-        public void Create(string firstName, string lastName, string phoneNumber, string emailAddress, string role)
+        public string Create(SignUpBody body)
         {
-            if (firstName.Length > 0 &&
-                lastName.Length > 0 &&
-                phoneNumber.Length > 0 &&
-                emailAddress.Length > 0 &&
-                role.Equals("Kierowca") || role.Equals("Biuro"))
+            if (body.FirstName.Length > 1 && body.FirstName.Length < 60 && !body.FirstName.Any(char.IsDigit))
             {
-                FirstName = $"{firstName[0].ToString().ToUpper()}{firstName.Substring(1)}";
-                LastName = $"{lastName[0].ToString().ToUpper()}{lastName.Substring(1)}";
-                PhoneNumber = phoneNumber;
-                EmailAddress = emailAddress;
-                Role = role;
-
-                Username = GenerateUsername(lastName);
-                Password = BCrypt.Net.BCrypt.HashPassword(Username.Substring(0, 4));
-            }
-        }
-        public string GenerateUsername(string lastname)
-        {
-            using (var db = new FLEETCOREDbContext())
-            {
-                bool done = false;
-                var _username = String.Empty;
-                while (done == false)
+                if (body.LastName.Length > 1 && body.LastName.Length < 60 && !body.LastName.Any(char.IsDigit))
                 {
-                    var username = $"{new Random().Next(0, 9999).ToString("D4")}{lastname.ToLower()}";
-
-                    var user = db.Users
-                                    .Where(u => u.Username == username)
-                                    .FirstOrDefault<User>();
-                    if (user == null)
+                    var email = new EmailAddressAttribute();
+                    if (email.IsValid(body.EmailAddress))
                     {
-                        done = true;
-                        _username = username;                       
+                        if (body.Password.Length > 6 
+                            && body.Password.Any(Char.IsUpper) 
+                            && body.Password.Any(c => !char.IsLetterOrDigit(c))
+                            && body.Password.Any(char.IsDigit)) {
+
+                            FirstName = $"{body.FirstName[0].ToString().ToUpper()}{body.FirstName.Substring(1)}";
+                            LastName = $"{body.LastName[0].ToString().ToUpper()}{body.LastName.Substring(1)}";
+                            EmailAddress = body.EmailAddress;
+                            Role = 0;
+
+                            Password = BCrypt.Net.BCrypt.HashPassword(body.Password);
+
+                            return "done";
+                        }
+                        else return "passwordFormat";                          
                     }
+                    else return "emailAddressFormat";
                 }
-                return _username;
+                else return "lastNameFormat";
             }
+            else return "firstNameFormat";
         }
-        public void Update(string firstName, string lastName, string phoneNumber, string emailAddress, string role)
+
+        public int SwitchRole()
         {
-            if (!FirstName.Equals(firstName) && firstName.Length > 0) FirstName = firstName;
-            if (!LastName.Equals(lastName) && lastName.Length > 0) LastName = lastName;
-            if (!PhoneNumber.Equals(phoneNumber) && phoneNumber.Length > 0) PhoneNumber = phoneNumber;
-            if (!EmailAddress.Equals(emailAddress) && emailAddress.Length > 0) EmailAddress = emailAddress;
-            if (!Role.Equals(role) && (role.Equals("Kierowca") || role.Equals("Biuro"))) Role = role;
+            if(Role.Equals(0)) Role = 1;
+            else Role = 0;
+
+            return Role;
         }
     }
 }

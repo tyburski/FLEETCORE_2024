@@ -6,36 +6,31 @@ namespace FLEETCORE
     public class FLEETCOREDbContext : DbContext
     {
         public DbSet<User> Users { get; set; }
+        public DbSet<Tag> Tags { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }
-        public DbSet<Refueling> Refuelings { get; set; }
-        public DbSet<TimeSheet> TimeSheets { get; set; }
-        public DbSet<Leave> Leaves { get; set; }
 
         private string _connectionString =
-            "server=.;database=FLEETCORE;trusted_connection=true;";
+            "server=(localdb)\\local;database=FLEETCORE;trusted_connection=true;";
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlServer(_connectionString);
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-
+        {           
             modelBuilder.Entity<Vehicle>()
-                .HasMany(x => x.Refuelings)
+                .HasOne(x => x.Tag)
                 .WithOne(x => x.Vehicle)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasForeignKey<Tag>(t => t.VehicleId)
+                .IsRequired(false);
 
-            modelBuilder.Entity<User>()
-                .HasMany(x => x.Refuelings)
-                .WithOne(x => x.User)
-                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<Tag>()
+                .HasOne(x => x.Vehicle)
+                .WithOne(x => x.Tag)
+                .HasForeignKey<Vehicle>(t => t.TagId)
+                .IsRequired(false);
 
-            modelBuilder.Entity<User>()
-                .HasMany(x => x.TimeSheets)
-                .WithOne(x => x.User)
-                .OnDelete(DeleteBehavior.Cascade);
+            base.OnModelCreating(modelBuilder);
         }
     }
 }

@@ -1,51 +1,28 @@
-﻿namespace FLEETCORE.Models
+﻿using FLEETCORE.Models.Body;
+
+namespace FLEETCORE.Models
 {
     public class Vehicle
     {
         public int Id { get; set; }
         public string Brand { get; private set; }
-        public string Model { get; private set; }
-        public string Plate { get; private set; }
-        public string VinNumber { get; private set; }
-        public int ProdYear { get; private set; }
-        public int Mileage { get; private set; }
-        public string Photo { get; private set; }
-        public List<Refueling> Refuelings { get; set; }
+        public string License { get; private set; }
+        public int? TagId { get; set; }
+        public Tag? Tag { get; private set; }
 
-        public void Create(string brand, string model, string plate, string vinNumber, int prodYear, int mileage, string photo)
+        public void Create(CreateVehicleBody body)
         {
-            if(brand.Length > 0 &&
-               model.Length > 0 &&
-               plate.Length > 0 &&
-               plate.Length > 0 &&
-               vinNumber.Length > 0 &&
-               prodYear > 0 &&
-               mileage > 0 &&
-               photo.Length > 0)
-            {
-                Brand = brand;
-                Model = model;
-                Plate = plate;
-                VinNumber = vinNumber;
-                ProdYear = prodYear;
-                Mileage = mileage;
-                Photo = photo;
-                Refuelings = new List<Refueling>();
-            }
+            Brand = body.Brand;
+            License = body.License.ToUpper().Trim();
+            Tag = null;
         }
-        public void Update(string brand, string model, string plate, string vinNumber, int prodYear, int mileage, string photo)
+        public void SetTag(Tag tag)
         {
-            if (!Brand.Equals(brand) && brand.Length > 0) Brand = brand;
-            if (!Model.Equals(model) && model.Length > 0) Model = model;
-            if (!Plate.Equals(plate) && plate.Length > 0) Plate = plate;
-            if (!VinNumber.Equals(vinNumber) && vinNumber.Length > 0) VinNumber = vinNumber;
-            if (!ProdYear.Equals(prodYear) && prodYear > 0) ProdYear = prodYear;
-            if (!Mileage.Equals(mileage) && mileage > 0) Mileage = mileage;
-            if (!Photo.Equals(photo) && Photo.Length > 0) Photo = photo;
+            Tag = tag;
         }
-        public void UpdateMileage(int mileage)
+        public void RemoveTag()
         {
-            if (mileage > Mileage) Mileage = mileage;
+            Tag = null;
         }
     }
 }
